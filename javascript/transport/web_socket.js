@@ -55,6 +55,7 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
       delete self._socket;
       self._state = self.UNCONNECTED;
       self.removeTimeout('ping');
+      self.removeTimeout('pingTimeout');
       self.setDeferredStatus('unknown');
 
       var pending = self._pending ? self._pending.toArray() : [];
@@ -76,6 +77,12 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
 
       if (!messages) return;
       messages = [].concat(messages);
+
+      if (!messages.length) {
+        // Ping response
+        self.removeTimeout('pingTimeout');
+        self.addTimeout('ping', self._client._advice.timeout/2000, self._ping, self);
+      }
 
       for (var i = 0, n = messages.length; i < n; i++) {
         if (messages[i].successful === undefined) continue;
@@ -105,7 +112,12 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
   _ping: function() {
     if (!this._socket) return;
     this._socket.send('[]');
-    this.addTimeout('ping', this._client._advice.timeout/2000, this._ping, this);
+    this.addTimeout('pingTimeout', this._client._advice.timeout/4000, this._pingTimeout, this);
+  },
+
+  _pingTimeout: function() {
+    this.close();
+    this._socket.onclose();
   }
 
 }), {
