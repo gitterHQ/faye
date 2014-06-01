@@ -295,7 +295,7 @@ Faye.Client = Faye.Class({
   },
 
   receiveMessage: function(message) {
-    var id = message.id, timeout, callback;
+    var id = message.id, callback;
 
     if (message.successful !== undefined) {
       callback = this._responseCallbacks[id];
@@ -319,7 +319,7 @@ Faye.Client = Faye.Class({
   messageError: function(messages, immediate) {
     var retry = this._retry,
         self  = this,
-        id, message, timeout;
+        id, message;
 
     for (var i = 0, n = messages.length; i < n; i++) {
       message = messages[i];
