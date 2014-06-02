@@ -30,12 +30,19 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
     if (this._state !== this.UNCONNECTED) return;
     this._state = this.CONNECTING;
 
+    this.info('Websocket transport attempting connection');
+
     var socket = this._createSocket();
-    if (!socket) return this.setDeferredStatus('failed');
+    if (!socket) {
+      this.info('Unable to create websocket');
+      return this.setDeferredStatus('failed');
+    }
 
     var self = this;
 
     socket.onopen = function() {
+      self.info('Websocket socket opened successfully');
+
       if (socket.headers) self._storeCookies(socket.headers['set-cookie']);
       self._socket = socket;
       self._state = self.CONNECTED;
@@ -45,9 +52,11 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
     };
 
     var closed = false;
-    socket.onclose = socket.onerror = function() {
+    socket.onclose = socket.onerror = function(event) {
       if (closed) return;
       closed = true;
+
+      self.info('Websocket closed. code ?, reason ?, wasClean ?', event && event.code, event && event.reason, event && event.wasClean);
 
       var wasConnected = (self._state === self.CONNECTED);
       socket.onopen = socket.onclose = socket.onerror = socket.onmessage = null;
@@ -88,6 +97,7 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
 
   close: function() {
     if (!this._socket) return;
+    self.info('Websocket transport close requested');
     this._socket.close();
   },
 
@@ -104,6 +114,9 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
 
   _ping: function() {
     if (!this._socket) return;
+
+    self.debug('Websocket transport ping');
+
     this._socket.send('[]');
     this.addTimeout('ping', this._client._advice.timeout/2000, this._ping, this);
   }
