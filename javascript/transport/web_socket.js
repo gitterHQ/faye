@@ -115,7 +115,7 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
   _ping: function() {
     if (!this._socket) return;
 
-    self.debug('Websocket transport ping');
+    this.debug('Websocket transport ping');
 
     this._socket.send('[]');
     this.addTimeout('ping', this._client._advice.timeout/2000, this._ping, this);
