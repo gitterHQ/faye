@@ -56,7 +56,13 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
       if (closed) return;
       closed = true;
 
-      self.info('Websocket closed. code ?, reason ?, wasClean ?', event && event.code, event && event.reason, event && event.wasClean);
+
+      if (this._closing) {
+        self.info('Websocket closed as expected. code ?, reason ?, wasClean ?', event && event.code, event && event.reason, event && event.wasClean);
+      } else {
+        self.warn('Websocket closed unexpectedly. code ?, reason ?, wasClean ?', event && event.code, event && event.reason, event && event.wasClean);
+        Faye.Transport.WebSocket._faultCount++;
+      }
 
       var wasConnected = (self._state === self.CONNECTED);
       socket.onopen = socket.onclose = socket.onerror = socket.onmessage = null;
@@ -97,6 +103,7 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
 
   close: function() {
     if (!this._socket) return;
+    this._closing = true;
     this.info('Websocket transport close requested');
     this._socket.close();
   },
@@ -127,6 +134,8 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
     'https:': 'wss:'
   },
 
+  _faultCount: 0,
+
   create: function(client, endpoint) {
     var sockets = client.transports.websocket = client.transports.websocket || {};
     sockets[endpoint.href] = sockets[endpoint.href] || new this(client, endpoint);
@@ -140,6 +149,10 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
   },
 
   isUsable: function(client, endpoint, callback, context) {
+    if(this._faultCount > 10) {
+      return callback.call(context, false);
+    }
+
     this.create(client, endpoint).isUsable(callback, context);
   }
 });
