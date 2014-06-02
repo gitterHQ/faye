@@ -106,6 +106,7 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
     this._closing = true;
     this.info('Websocket transport close requested');
     this._socket.close();
+    delete this._socket;
   },
 
   _createSocket: function() {
