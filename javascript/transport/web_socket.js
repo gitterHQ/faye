@@ -136,7 +136,7 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
   _pingTimeout: function() {
     this.info('Ping timeout');
     this.close();
-  },
+  }
 
 }), {
   PROTOCOLS: {
