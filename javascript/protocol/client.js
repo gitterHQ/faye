@@ -300,8 +300,6 @@ Faye.Client = Faye.Class({
   },
 
   reset: function() {
-    // dont remove the clientId for now
-    // this._clientId  = null;
     this._state     = this.UNCONNECTED;
     this._cycleConnection();
   },
