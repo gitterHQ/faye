@@ -130,6 +130,12 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
 
     this._socket.send('[]');
     this.addTimeout('ping', this._client._advice.timeout/2000, this._ping, this);
+    this.addTimeout('pingTimeout', this._client._advice.timeout/1500, this._pingTimeout, this);
+  },
+
+  _pingTimeout: function() {
+    this.info('Ping timeout');
+    this.close();
   }
 
 }), {
