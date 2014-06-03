@@ -70,6 +70,7 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
       delete self._socket;
       self._state = self.UNCONNECTED;
       self.removeTimeout('ping');
+      self.removeTimeout('pingTimeout');
       self.setDeferredStatus('unknown');
 
       var pending = self._pending ? self._pending.toArray() : [];
@@ -89,7 +90,7 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
           envelopes = [],
           envelope;
 
-      this.removeTimeout('pingTimeout');
+      self.removeTimeout('pingTimeout');
 
       if (!messages) return;
       messages = [].concat(messages);
