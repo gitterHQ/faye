@@ -51,38 +51,8 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
       self.setDeferredStatus('succeeded', socket);
     };
 
-    var closed = false;
     socket.onclose = socket.onerror = function(event) {
-      if (closed) return;
-      closed = true;
-
-
-      if (this._closing) {
-        self.info('Websocket closed as expected. code ?, reason ?, wasClean ?', event && event.code, event && event.reason, event && event.wasClean);
-      } else {
-        self.warn('Websocket closed unexpectedly. code ?, reason ?, wasClean ?', event && event.code, event && event.reason, event && event.wasClean);
-        Faye.Transport.WebSocket._faultCount++;
-      }
-
-      var wasConnected = (self._state === self.CONNECTED);
-      socket.onopen = socket.onclose = socket.onerror = socket.onmessage = null;
-
-      delete self._socket;
-      self._state = self.UNCONNECTED;
-      self.removeTimeout('ping');
-      self.removeTimeout('pingTimeout');
-      self.setDeferredStatus('unknown');
-
-      var pending = self._pending ? self._pending.toArray() : [];
-      delete self._pending;
-
-      if (wasConnected) {
-        self.handleError(pending, true);
-      } else if (self._everConnected) {
-        self.handleError(pending);
-      } else {
-        self.setDeferredStatus('failed');
-      }
+      self._onclose(event);
     };
 
     socket.onmessage = function(event) {
@@ -109,7 +79,48 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
     this._closing = true;
     this.info('Websocket transport close requested');
     this._socket.close();
+    this.addTimeout('closeTimeout', this._client._advice.timeout/4000, this._onclose, this);
     delete this._socket;
+  },
+
+  _onclose: function(event) {
+    var socket = this._socket;
+    delete this._socket;
+
+    if(!socket) return;
+
+    if (this._closing) {
+      if(event) {
+        this.info('Websocket closed as expected. code ?, reason ?, wasClean ?', event && event.code, event && event.reason, event && event.wasClean);
+      } else {
+        this.info('Websocket close timeout.');
+      }
+    } else {
+      this.warn('Websocket closed unexpectedly. code ?, reason ?, wasClean ?', event && event.code, event && event.reason, event && event.wasClean);
+      Faye.Transport.WebSocket._faultCount++;
+    }
+
+
+    var wasConnected = (this._state === this.CONNECTED);
+    socket.onopen = socket.onclose = socket.onerror = socket.onmessage = null;
+
+    this._state = this.UNCONNECTED;
+    this.removeTimeout('ping');
+    this.removeTimeout('pingTimeout');
+    this.removeTimeout('closeTimeout');
+    this.setDeferredStatus('unknown');
+
+    var pending = this._pending ? this._pending.toArray() : [];
+    delete this._pending;
+
+    if (wasConnected) {
+      this.handleError(pending, true);
+    } else if (this._everConnected) {
+      this.handleError(pending);
+    } else {
+      this.setDeferredStatus('failed');
+    }
+
   },
 
   _createSocket: function() {
@@ -130,7 +141,7 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
 
     this._socket.send('[]');
     this.addTimeout('ping', this._client._advice.timeout/2000, this._ping, this);
-    this.addTimeout('pingTimeout', this._client._advice.timeout/1500, this._pingTimeout, this);
+    this.addTimeout('pingTimeout', this._client._advice.timeout/2000, this._pingTimeout, this);
   },
 
   _pingTimeout: function() {
