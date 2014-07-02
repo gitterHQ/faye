@@ -280,6 +280,11 @@ Faye.Client = Faye.Class({
     return publication;
   },
 
+  reset: function() {
+    this._state     = this.UNCONNECTED;
+    this._cycleConnection();
+  },
+
   _sendMessage: function(message, callback, context) {
     message.id = this._generateMessageId();
 

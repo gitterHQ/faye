@@ -695,4 +695,17 @@ JS.ENV.ClientSpec = JS.Test.describe("Client", function() { with(this) {
       }})
     }})
   }})
+
+  describe("reset", function() { with(this) {
+    before(function() { with(this) {
+      createConnectedClient()
+    }})
+
+    it("should disconnect the client", function() { with(this) {
+      client.reset();
+      assertEqual( client.UNCONNECTED, client._state )
+    }})
+
+  }})
+
 }})
