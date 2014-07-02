@@ -20,6 +20,7 @@ Faye.Client = Faye.Class({
     this._endpoint   = endpoint || this.DEFAULT_ENDPOINT;
     this._channels   = new Faye.Channel.Set();
     this._dispatcher = new Faye.Dispatcher(this, this._endpoint, options);
+    this._reuseTransport = options.reuseTransport !== false; // Default true
 
     this._messageId = 0;
     this._state     = this.UNCONNECTED;
@@ -73,7 +74,7 @@ Faye.Client = Faye.Class({
     if (this._advice.reconnect === this.NONE) return;
     if (this._state !== this.UNCONNECTED) return;
 
-    if (this._options.reuseTransport === false) {
+    if (!this._reuseTransport) {
       this._dispatcher.close();
     }
 
