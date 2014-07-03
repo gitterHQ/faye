@@ -75,6 +75,7 @@ Faye.Client = Faye.Class({
     if (this._state !== this.UNCONNECTED) return;
 
     if (!this._reuseTransport) {
+      this.info('Closing existing transport on handshake.');
       this._dispatcher.close();
     }
 
