@@ -287,6 +287,7 @@ Faye.Client = Faye.Class({
   },
 
   reset: function() {
+    this._dispatcher.reset();
     this._state     = this.UNCONNECTED;
     this._cycleConnection();
   },

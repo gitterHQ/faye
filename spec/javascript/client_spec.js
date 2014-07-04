@@ -702,6 +702,7 @@ JS.ENV.ClientSpec = JS.Test.describe("Client", function() { with(this) {
     }})
 
     it("should disconnect the client", function() { with(this) {
+      expect(transport, "close");
       client.reset();
       assertEqual( client.UNCONNECTED, client._state )
     }})

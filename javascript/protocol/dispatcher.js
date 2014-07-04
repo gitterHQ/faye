@@ -37,6 +37,22 @@ Faye.Dispatcher = Faye.Class({
     this.headers[name] = value;
   },
 
+  reset: function() {
+    this.close();
+    var transports = this.transports.websocket;
+    if(transports) {
+      this.transports.websocket = {};
+
+      for(var key in transports) {
+        if(transports.hasOwnProperty(key)) {
+          var transport = transports[key];
+          if(transport) transport.close();
+        }
+      }
+    }
+
+  },
+
   close: function() {
     var transport = this._transport;
     delete this._transport;
@@ -95,10 +111,15 @@ Faye.Dispatcher = Faye.Class({
         request  = envelope && envelope.request,
         self     = this;
 
+    this.debug('handleError');
+
     if (!envelope || !envelope.request) return;
 
     request.then(function(req) {
-      if (req && req.abort) req.abort();
+      if (req && req.abort) {
+        self.debug('Aborting request');
+        req.abort();
+      }
     });
 
     Faye.ENV.clearTimeout(envelope.timer);
