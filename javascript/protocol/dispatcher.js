@@ -40,7 +40,10 @@ Faye.Dispatcher = Faye.Class({
   close: function() {
     var transport = this._transport;
     delete this._transport;
-    if (transport) transport.close();
+    if (transport) {
+      this.info('Dispatch close to close transport.');
+      transport.close();
+    }
   },
 
   selectTransport: function(transportTypes) {
