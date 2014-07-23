@@ -685,8 +685,8 @@ JS.ENV.ClientSpec = JS.Test.describe("Client", function() { with(this) {
       createConnectedClient()
     }})
 
-    it("should disconnect the client", function() { with(this) {
-      expect(transport, "close");
+    it("should reset the dispatcher", function() { with(this) {
+      expect(dispatcher, "reset");
       client.reset();
       assertEqual( client.UNCONNECTED, client._state )
     }})
