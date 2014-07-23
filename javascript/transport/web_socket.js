@@ -39,7 +39,7 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
 
     return {
       abort: function() {
-        self.callback(function(socket) { socket.close() });
+        self.close();
       }
     };
   },
