@@ -85,6 +85,7 @@ Faye.Dispatcher = Faye.Class({
     if (envelope.request || envelope.timer) return;
 
     envelope.timer = Faye.ENV.setTimeout(function() {
+      self.debug('Delivery of message ? timed out', id);
       self.handleError(message, false);
     }, timeout * 1000);
 
@@ -111,9 +112,9 @@ Faye.Dispatcher = Faye.Class({
         request  = envelope && envelope.request,
         self     = this;
 
-    this.debug('handleError');
-
     if (!envelope || !envelope.request) return;
+
+    this.debug('handleError');
 
     request.then(function(req) {
       if (req && req.abort) {
@@ -126,9 +127,12 @@ Faye.Dispatcher = Faye.Class({
     envelope.request = envelope.timer = null;
 
     if (immediate) {
+      this.debug('Retrying message#? delivery immediately', message.id);
       this.sendMessage(envelope.message, envelope.timeout);
     } else {
+      this.debug('Retrying message#? delivery after timeout', message.id);
       envelope.timer = Faye.ENV.setTimeout(function() {
+        self.debug('Attempting redelivery of failed message');
         envelope.timer = null;
         self.sendMessage(envelope.message, envelope.timeout);
       }, this.retry * 1000);

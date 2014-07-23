@@ -100,6 +100,7 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
     };
 
     socket.onmessage = function(event) {
+      self.debug('Websocket message received');
       var replies = JSON.parse(event.data);
       if (!replies) return;
 
