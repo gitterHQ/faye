@@ -1,7 +1,7 @@
 module Faye
   class Dispatcher
 
-    class Envelope < Struct.new(:message, :timeout, :request, :timer)
+    class Envelope < Struct.new(:message, :timeout, :attempts, :deadline, :request, :timer)
     end
 
     MAX_REQUEST_SIZE = 2048
@@ -69,16 +69,23 @@ module Faye
       end
     end
 
-    def send_message(message, timeout)
+    def send_message(message, timeout, options = {})
       return unless @transport
 
-      id = message['id']
-      envelope = @envelopes[id] ||= Envelope.new(message, timeout, nil, nil)
+      id       = message['id']
+      attempts  = options[:attempts]
+      deadline = options[:deadline] && Time.now.to_f + options[:deadline]
+      envelope = @envelopes[id] ||= Envelope.new(message, timeout, attempts, deadline, nil, nil)
 
       return if envelope.request or envelope.timer
 
+      if attempts_exhausted(envelope) or deadline_passed(envelope)
+        @envelopes.delete(id)
+        return
+      end
+
       envelope.timer = EventMachine.add_timer(timeout) do
-        handle_error(message, false)
+        handle_error(message)
       end
 
       envelope.request = @transport.send_message(message)
@@ -96,7 +103,7 @@ module Faye
       @client.trigger('transport:up')
     end
 
-    def handle_error(message, immediate)
+    def handle_error(message, immediate = false)
       return unless envelope = @envelopes[message['id']]
       return unless request = envelope.request
 
@@ -110,7 +117,7 @@ module Faye
       if immediate
         send_message(envelope.message, envelope.timeout)
       else
-        envelope.timer = EventMachine.add_timer(@rety) do
+        envelope.timer = EventMachine.add_timer(@retry) do
           envelope.timer = nil
           send_message(envelope.message, envelope.timeout)
         end
@@ -121,5 +128,19 @@ module Faye
       @client.trigger('transport:down')
     end
 
+  private
+
+    def attempts_exhausted(envelope)
+      return false unless envelope.attempts
+      envelope.attempts -= 1
+      return false if envelope.attempts >= 0
+      return true
+    end
+
+    def deadline_passed(envelope)
+      return false unless deadline = envelope.deadline
+      return false if Time.now.to_f <= deadline
+      return true
+    end
   end
 end

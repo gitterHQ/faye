@@ -33,7 +33,15 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
         this._handleError(messages);
       }
     }, this);
+
     this.connect();
+    var self = this;
+
+    return {
+      abort: function() {
+        self.callback(function(socket) { socket.close() });
+      }
+    };
   },
 
   connect: function() {

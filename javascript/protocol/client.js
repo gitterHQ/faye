@@ -90,7 +90,7 @@ Faye.Client = Faye.Class({
       version:                  Faye.BAYEUX_VERSION,
       supportedConnectionTypes: [this._dispatcher.connectionType]
 
-    }, function(response) {
+    }, {}, function(response) {
 
       if (response.successful) {
         this._state = this.CONNECTED;
@@ -144,7 +144,7 @@ Faye.Client = Faye.Class({
       clientId:       this._dispatcher.clientId,
       connectionType: this._dispatcher.connectionType
 
-    }, this._cycleConnection, this);
+    }, {}, this._cycleConnection, this);
   },
 
   // Request                              Response
@@ -164,7 +164,7 @@ Faye.Client = Faye.Class({
       channel:  Faye.Channel.DISCONNECT,
       clientId: this._dispatcher.clientId
 
-    }, function(response) {
+    }, {}, function(response) {
       if (response.successful) this._dispatcher.close();
     }, this);
 
@@ -207,7 +207,7 @@ Faye.Client = Faye.Class({
         clientId:     this._dispatcher.clientId,
         subscription: channel
 
-      }, function(response) {
+      }, {}, function(response) {
         if (!response.successful) {
           subscription.setDeferredStatus('failed', Faye.Error.parse(response.error));
           return this._channels.unsubscribe(channel, callback, context);
@@ -249,7 +249,7 @@ Faye.Client = Faye.Class({
         clientId:     this._dispatcher.clientId,
         subscription: channel
 
-      }, function(response) {
+      }, {}, function(response) {
         if (!response.successful) return;
 
         var channels = [].concat(response.subscription);
@@ -264,7 +264,7 @@ Faye.Client = Faye.Class({
   // MAY include:   * clientId            MAY include:   * id
   //                * id                                 * error
   //                * ext                                * ext
-  publish: function(channel, data) {
+  publish: function(channel, data, options) {
     var publication = new Faye.Publication();
 
     this.connect(function() {
@@ -275,7 +275,7 @@ Faye.Client = Faye.Class({
         data:     data,
         clientId: this._dispatcher.clientId
 
-      }, function(response) {
+      }, options, function(response) {
         if (response.successful)
           publication.setDeferredStatus('succeeded');
         else
@@ -292,7 +292,7 @@ Faye.Client = Faye.Class({
     this._cycleConnection();
   },
 
-  _sendMessage: function(message, callback, context) {
+  _sendMessage: function(message, options, callback, context) {
     message.id = this._generateMessageId();
 
     var timeout = this._advice.timeout
@@ -302,7 +302,7 @@ Faye.Client = Faye.Class({
     this.pipeThroughExtensions('outgoing', message, null, function(message) {
       if (!message) return;
       if (callback) this._responseCallbacks[message.id] = [callback, context];
-      this._dispatcher.sendMessage(message, timeout);
+      this._dispatcher.sendMessage(message, timeout, options || {});
     }, this);
   },
 
