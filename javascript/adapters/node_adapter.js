@@ -149,7 +149,9 @@ Faye.NodeAdapter = Faye.Class({
 
         if (isGet) {
           body = '/**/' + jsonp + '(' + this._jsonpEscape(body) + ');';
-          headers['Content-Disposition'] = 'attachment; filename=f.txt';
+          // Disable this for now as it breaks
+          // gitter osx
+          // headers['Content-Disposition'] = 'attachment; filename=f.txt';
         }
 
         headers['Content-Length'] = new Buffer(body, 'utf8').length.toString();
