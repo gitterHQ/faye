@@ -15,6 +15,8 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
     this._pending = this._pending || new Faye.Set();
     for (var i = 0, n = messages.length; i < n; i++) this._pending.add(messages[i]);
 
+    var promise = new Faye.Promise();
+
     this.callback(function(socket) {
       if (!socket) {
         this.info('Cancelling request as socket has been closed');
@@ -31,16 +33,16 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
         socket.send(Faye.toJSON(messages));
       } catch(e) {
         this._handleError(messages);
+        return;
       }
+
+      Faye.Promise.fulfill(promise, socket);
     }, this);
 
     this.connect();
-    var self = this;
 
     return {
-      abort: function() {
-        self.close();
-      }
+      abort: function() { promise.then(function(/*ws*/) { self.close(); }); }
     };
   },
 
