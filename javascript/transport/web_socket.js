@@ -41,6 +41,7 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
 
     this.connect();
 
+    var self = this;
     return {
       abort: function() { promise.then(function(/*ws*/) { self.close(); }); }
     };
