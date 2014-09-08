@@ -43,7 +43,12 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
 
     var self = this;
     return {
-      abort: function() { promise.then(function(/*ws*/) { self.close(); }); }
+      abort: function() {
+        promise.then(function(/*ws*/) {
+          self.info('Request fulfilled, closing connection');
+          self.close();
+        });
+      }
     };
   },
 
@@ -94,12 +99,15 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
 
       delete self._socket;
       self._state = self.UNCONNECTED;
+      self.removeTimeout('close');
       self.removeTimeout('ping');
       self.removeTimeout('pingTimeout');
       self.setDeferredStatus('unknown');
 
       var pending = self._pending ? self._pending.toArray() : [];
       delete self._pending;
+
+      self.info('Websocket terminated, ? pending messages', pending.length);
 
       if (wasConnected) {
         self._handleError(pending, true);
@@ -132,6 +140,15 @@ Faye.Transport.WebSocket = Faye.extend(Faye.Class(Faye.Transport, {
     this.info('Websocket transport close requested');
     this._socket.close();
     this._invalidateSocket();
+    this.addTimeout('close', this._dispatcher.timeout / 2, this._forceClose, this);
+  },
+
+  _forceClose: function() {
+    if (!this._socket) return;
+    if (this._socket.onclose) {
+      this.info('Websocket close event timeout, forcing close');
+      this._socket.onclose();
+    }
   },
 
   _createSocket: function() {
