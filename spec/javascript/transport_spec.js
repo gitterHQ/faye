@@ -9,13 +9,13 @@ var Faye_Class = require('../../javascript/util/class')
 JS.ENV.TransportSpec = JS.Test.describe("Transport", function() { with(this) {
   before(function() { with(this) {
     this.dispatcher = {
-      endpoint:            Faye_URI.parse("http://example.com/"),
-      endpoints:           {},
-      maxRequestSize:      2048,
-      headers:             {},
-      proxy:               {},
-      transports:          {},
-      websocketExtensions: []
+      endpoint:       Faye_URI.parse("http://example.com/"),
+      endpoints:      {},
+      maxRequestSize: 2048,
+      headers:        {},
+      proxy:          {},
+      transports:     {},
+      wsExtensions:   []
     }
     dispatcher.endpointFor = function() { return dispatcher.endpoint }
 
