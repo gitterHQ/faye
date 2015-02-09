@@ -89,7 +89,6 @@ var Faye_Dispatcher = Faye_Class({
   },
 
   sendMessage: function(message, timeout, options) {
-    if (!this._transport) return;
     options = options || {};
 
     var id       = message.id,
@@ -107,6 +106,7 @@ var Faye_Dispatcher = Faye_Class({
   },
 
   _sendEnvelope: function(envelope) {
+    if (!this._transport) return;
     if (envelope.request || envelope.timer) return;
 
     var message   = envelope.message,
